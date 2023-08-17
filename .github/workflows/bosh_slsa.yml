@@ -1,0 +1,68 @@
+name: BOSH SLSA
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: "The repository to generate SBoMs for"
+        required: true
+        type: string
+      package-name:
+        description: "The name of the package to generate a SBoM for"
+        required: true
+        type: string
+      sbom-format:
+        description: "The format of the SBoM to generate"
+        required: true
+        type: string
+        default: "cyclonedx-json"
+
+jobs:
+  find-go-mods:
+    runs-on: ubuntu-latest
+    outputs:
+      go-mods: ${{ steps.find-go-mods.outputs.go-mods }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.repository }}
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: sbom_link
+      - name: Find go.mod files
+        id: find-go-mods
+        env:
+          PACKAGE_NAME: ${{ inputs.package-name }}
+        run: sbom_link/scripts/find_gomod.sh
+
+  generate-slsa-sbom:
+    needs: find-go-mods
+    strategy:
+      matrix:
+        go-mod: ${{ fromJSON(needs.find-go-mods.outputs.go-mods) }}
+    permissions:
+      id-token: write # For signing
+      contents: write # For asset release.
+      packages: write # For package upload.
+      actions: read # For getting workflow run info.
+    uses: dtimm/sbom_link/.github/workflows/slsa3.yml@main
+    with:
+      repository: ${{ inputs.repository }}
+      go-mod: ${{ matrix.go-mod }}
+      sbom-format: ${{ inputs.sbom-format }}
+
+  upload-sbom:
+    needs: generate-slsa-sbom
+    runs-on: ubuntu-latest
+    steps:
+    - name: Create SBoM file
+      env:
+        SBOM: ${{ needs.generate-slsa-sbom.outputs.sbom }}
+      run: |
+        echo "${SBOM}" > sbom.json
+    - name: Upload SBoM
+      uses: actions/upload-artifact@v3
+      with:
+        path: sbom.json

@@ -1,0 +1,34 @@
+---
+resources:
+- name: bpm-release
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/bpm-release.git
+    branch: main
+    password: (( cve-scan.github_access_token ))
+- name: bosh-sbom-link
+  type: git
+  source:
+    uri: git@github.com:dtimm/sbom_link.git
+    branch: main
+    password: (( cve-scan.github_access_token ))
+- name: signing-key
+  type: s3
+  source:
+    uri:
+
+jobs:
+- name: generate-sbom-provenance
+  serial: true
+  plan:
+  - in_parallel:
+    - get: bpm-release
+    - get: bosh-sbom-link
+    - get: signing-key
+  - task: generate-gomod-sbom
+    file: bosh-sbom-link/concourse/gomod/task.yml
+    input_mapping:
+      bosh-release: bpm-release
+  - task: sign-sboms
+    file: bosh-sbom-link/concourse/sign/task.yml
+

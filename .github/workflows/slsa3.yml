@@ -1,0 +1,67 @@
+name: BOSH SLSA 3 builder
+
+permissions: {}
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: "The repository to generate SBoMs for"
+        required: true
+        type: string
+      go-mod:
+        description: "The go.mod file to generate a SBoM for"
+        required: true
+        type: string
+      sbom-format:
+        description: "The format of the SBoM to generate"
+        required: false
+        type: string
+        default: "cyclonedx-json"
+
+      rekor-log-public:
+        description: "Allow publication of your repository name on the public Rekor log"
+        required: false
+        type: boolean
+        default: false
+
+    outputs:
+      sbom:
+        description: "The SBoM generated"
+        value: "${{ fromJSON(jobs.slsa-run.outputs.build-artifacts-outputs).sbom }}"
+
+      provenance-download-name:
+        description: "The name of the provenance attestation uploaded to the workflow run."
+        value: ${{ jobs.slsa-run.outputs.attestations-download-name }}
+      provenance-download-sha256:
+        description: "The sha256 of the provenance attestation uploaded to the workflow run."
+        value: ${{ jobs.slsa-run.outputs.attestations-download-sha256 }}
+
+jobs:
+  slsa-setup:
+    permissions:
+      id-token: write # For token creation.
+    outputs:
+      slsa-token: ${{ steps.generate.outputs.slsa-token }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate the token
+        id: generate
+        uses: slsa-framework/slsa-github-generator/actions/delegator/setup-generic@v1.8.0
+        with:
+          slsa-workflow-recipient: "delegator_generic_slsa3.yml"
+          slsa-rekor-log-public: ${{ inputs.rekor-log-public }}
+          slsa-runner-label: "ubuntu-latest"
+          slsa-build-action-path: "./gomod_sbom/callback_action"
+          slsa-workflow-inputs: ${{ toJson(inputs) }}
+
+  slsa-run:
+    needs: [slsa-setup]
+    permissions:
+      id-token: write # For signing.
+      contents: write # For asset uploads.
+      packages: write # For package uploads.
+      actions: read # For the entrypoint.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/delegator_generic_slsa3.yml@v1.8.0
+    with:
+      slsa-token: ${{ needs.slsa-setup.outputs.slsa-token }}
