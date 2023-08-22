@@ -1,8 +1,8 @@
 ---
 platform: linux
 inputs:
-- name: bosh-release
 - name: bosh-sbom-link
+- name: bosh-release
 outputs:
 - name: sboms
 image_resource:

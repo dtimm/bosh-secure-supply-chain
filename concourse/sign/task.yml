@@ -1,6 +1,7 @@
 ---
 platform: linux
 inputs:
+- name: bosh-sbom-link
 - name: signing-key
 - name: sboms
 outputs:
@@ -9,6 +10,6 @@ image_resource:
   type: registry-image
   source:
     repository: harbor-repo.vmware.com/tas_ppe/cosign
-    tag: 0.0.3-beta
+    tag: 0.0.4-beta
 run:
   path: bosh-sbom-link/concourse/sign/task.sh
