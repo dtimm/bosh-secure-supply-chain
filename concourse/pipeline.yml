@@ -20,7 +20,6 @@ jobs:
   - in_parallel:
     - get: bpm-release
     - get: bosh-sbom-link
-    - get: signing-key
   - task: generate-gomod-sbom
     file: bosh-sbom-link/concourse/gomod/task.yml
     input_mapping:
