@@ -41,6 +41,6 @@ for gomod in "${uniq_gomods[@]}"; do
 
   jsonString=$(echo "${package_sbom}" | jq --join-output --compact-output .)
 
-  uuid=$(uuidgen)
-  echo "${jsonString}" > "sboms/${uuid}.sbom.json"
+  output_file=${gomod//\//-}
+  echo "${jsonString}" > "sboms/${output_file#bosh-release-src-}.sbom.json"
 done
