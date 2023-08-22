@@ -11,7 +11,7 @@ image_resource:
     repository: harbor-repo.vmware.com/tas_ppe/cosign
     tag: 0.0.3-beta
 params:
-  GO_MOD_FILE:
+  PACKAGE_NAME:
   SBOM_FORMAT: cyclonedx-json
 run:
   path: bosh-sbom-link/concourse/gomod/task.sh

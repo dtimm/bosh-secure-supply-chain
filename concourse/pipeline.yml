@@ -4,18 +4,20 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry/bpm-release.git
-    branch: main
-    password: (( cve-scan.github_access_token ))
+    branch: master
+    private_key: ((signing_test.private_key))
 - name: bosh-sbom-link
   type: git
   source:
-    uri: git@github.com:dtimm/sbom_link.git
+    uri: git@github.com:dtimm/bosh-secure-supply-chain.git
     branch: main
-    password: (( cve-scan.github_access_token ))
+    private_key: ((signing_test.private_key))
 - name: signing-key
-  type: s3
+  type: git
   source:
-    uri:
+    uri: git@github.com:dtimm/secrets.git
+    branch: main
+    private_key: ((signing_test.secrets_private_key))
 
 jobs:
 - name: generate-sbom-provenance
@@ -29,6 +31,8 @@ jobs:
     file: bosh-sbom-link/concourse/gomod/task.yml
     input_mapping:
       bosh-release: bpm-release
+    params:
+      PACKAGE_NAME: bpm
   - task: sign-sboms
     file: bosh-sbom-link/concourse/sign/task.yml
 
