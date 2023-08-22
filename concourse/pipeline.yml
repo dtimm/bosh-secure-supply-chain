@@ -12,12 +12,6 @@ resources:
     uri: git@github.com:dtimm/bosh-secure-supply-chain.git
     branch: main
     private_key: ((signing_test.private_key))
-- name: signing-key
-  type: git
-  source:
-    uri: git@github.com:dtimm/secrets.git
-    branch: main
-    private_key: ((signing_test.secrets_private_key))
 
 jobs:
 - name: generate-sbom-provenance
@@ -35,4 +29,6 @@ jobs:
       PACKAGE_NAME: bpm
   - task: sign-sboms
     file: bosh-sbom-link/concourse/sign/task.yml
+    params:
+      SIGNING_KEY: ((signing_test.signing_key))
 
