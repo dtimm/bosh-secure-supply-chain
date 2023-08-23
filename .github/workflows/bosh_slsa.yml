@@ -11,11 +11,6 @@ on:
         description: "The name of the package to generate a SBoM for"
         required: true
         type: string
-      sbom-format:
-        description: "The format of the SBoM to generate"
-        required: true
-        type: string
-        default: "cyclonedx-json"
 
 jobs:
   find-go-mods:
@@ -30,12 +25,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          path: sbom_link
+          path: bosh_link
       - name: Find go.mod files
         id: find-go-mods
         env:
           PACKAGE_NAME: ${{ inputs.package-name }}
-        run: sbom_link/scripts/find_gomod.sh
+        run: bosh_link/scripts/find_gomod.sh
 
   generate-slsa-sbom:
     needs: find-go-mods
@@ -47,22 +42,7 @@ jobs:
       contents: write # For asset release.
       packages: write # For package upload.
       actions: read # For getting workflow run info.
-    uses: dtimm/sbom_link/.github/workflows/slsa3.yml@main
+    uses: dtimm/bosh-secure-supply-chain/.github/workflows/slsa3.yml@main
     with:
       repository: ${{ inputs.repository }}
       go-mod: ${{ matrix.go-mod }}
-      sbom-format: ${{ inputs.sbom-format }}
-
-  upload-sbom:
-    needs: generate-slsa-sbom
-    runs-on: ubuntu-latest
-    steps:
-    - name: Create SBoM file
-      env:
-        SBOM: ${{ needs.generate-slsa-sbom.outputs.sbom }}
-      run: |
-        echo "${SBOM}" > sbom.json
-    - name: Upload SBoM
-      uses: actions/upload-artifact@v3
-      with:
-        path: sbom.json

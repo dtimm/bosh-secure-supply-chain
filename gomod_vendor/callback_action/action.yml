@@ -42,15 +42,9 @@ runs:
       with:
         repository: ${{ fromJson(inputs.slsa-workflow-inputs).repository }}
 
-    - name: Download syft
-      shell: bash
-      run: |
-        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-        sudo chmod +x /usr/local/bin/syft
-
     - name: Run main Action
       uses: ./../__TOOL_CHECKOUT_DIR__/gomod_sbom
-      id: generate-go-sbom
+      id: verify-gomod-vendor
       with:
         go-mod: ${{ fromJson(inputs.slsa-workflow-inputs).go-mod }}
         sbom-format: ${{ fromJson(inputs.slsa-workflow-inputs).sbom-format }}
@@ -59,6 +53,6 @@ runs:
       id: generate-layout
       env:
         SLSA_OUTPUTS_ARTIFACTS_FILE: ${{ inputs.slsa-layout-file }}
-        SBOM: ${{ steps.generate-go-sbom.outputs.sbom }}
+        GO_MOD_FILE: ${{ fromJson(inputs.slsa-workflow-inputs).go-mod }}
       shell: bash
       run: ./../__TOOL_ACTION_DIR__/generate_layout.sh

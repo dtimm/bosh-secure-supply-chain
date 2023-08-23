@@ -6,18 +6,13 @@ on:
   workflow_call:
     inputs:
       repository:
-        description: "The repository to generate SBoMs for"
+        description: "BOSH release repository"
         required: true
         type: string
       go-mod:
-        description: "The go.mod file to generate a SBoM for"
+        description: "The go.mod file to validate vendoring"
         required: true
         type: string
-      sbom-format:
-        description: "The format of the SBoM to generate"
-        required: false
-        type: string
-        default: "cyclonedx-json"
 
       rekor-log-public:
         description: "Allow publication of your repository name on the public Rekor log"
@@ -26,10 +21,6 @@ on:
         default: false
 
     outputs:
-      sbom:
-        description: "The SBoM generated"
-        value: "${{ fromJSON(jobs.slsa-run.outputs.build-artifacts-outputs).sbom }}"
-
       provenance-download-name:
         description: "The name of the provenance attestation uploaded to the workflow run."
         value: ${{ jobs.slsa-run.outputs.attestations-download-name }}
@@ -52,7 +43,7 @@ jobs:
           slsa-workflow-recipient: "delegator_generic_slsa3.yml"
           slsa-rekor-log-public: ${{ inputs.rekor-log-public }}
           slsa-runner-label: "ubuntu-latest"
-          slsa-build-action-path: "./gomod_sbom/callback_action"
+          slsa-build-action-path: "./gomod_vendor/callback_action"
           slsa-workflow-inputs: ${{ toJson(inputs) }}
 
   slsa-run:

@@ -1,0 +1,31 @@
+name: go.mod vendor
+description: |
+  Generates SBoMs for go.mod files in a BOSH release.
+  The SBoMs are uploaded as artifacts.
+
+inputs:
+  go-mod:
+    description: "The path to the go.mod file to generate a SBoM for"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+  - name: Verify vendor directory
+    id: verify-vendor
+    shell: bash
+    env:
+      GO_MOD_FILE: ${{ inputs.go-mod }}
+    run: |
+      set -e
+      echo "${GO_MOD_FILE:?GO_MOD_FILE must be set}"
+
+      pushd "$(basename "${GO_MOD_FILE}")" > /dev/null
+        go mod tidy
+        go mod vendor
+
+        if [[ `git status --porcelain` ]]; then
+          echo "go.mod and/or go.sum do not match vendor/ directory"
+          exit 1
+        fi
+      popd > /dev/null
