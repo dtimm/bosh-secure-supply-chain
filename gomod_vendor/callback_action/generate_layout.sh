@@ -2,12 +2,17 @@
 set -euo pipefail
 
 echo "${GO_MOD_FILE:?GO_MOD_FILE must be set}"
+go_sum_file="$(dirname "${GO_MOD_FILE}")/go.sum"
 
-hash=$(sha256sum "${GO_MOD_FILE}" | awk '{print $1}')
-subject_name=$(basename "$(readlink -m "${GO_MOD_FILE}")")
+mod_hash=$(sha256sum "${GO_MOD_FILE}" | awk '{print $1}')
 printf -v gomod_subject \
     '{"name": "%s", "digest": {"sha256": "%s"}}' \
-    "$subject_name" "$hash"
+    "${GO_MOD_FILE}" "$mod_hash"
+
+sum_hash=$(sha256sum "${go_sum_file}" | awk '{print $1}')
+printf -v gosum_subject \
+    '{"name": "%s", "digest": {"sha256": "%s"}}' \
+    "${go_sum_file}" "$sum_hash"
 
 cat <<EOF >DATA
 {
@@ -19,6 +24,13 @@ cat <<EOF >DATA
             "subjects":
             [
                 ${gomod_subject}
+            ]
+        },
+        {
+            "name": "${go_sum_file}",
+            "subjects":
+            [
+                ${gosum_subject}
             ]
         }
     ]
