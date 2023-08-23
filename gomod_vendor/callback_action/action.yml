@@ -1,5 +1,5 @@
-name: BOSH SBoM internal Action
-description: BOSH SBoM internal Action
+name: BOSH go.mod vendor validation callback
+description: BOSH go.mod vendor validation callback
 
 inputs:
   slsa-workflow-inputs:
@@ -29,25 +29,17 @@ inputs:
   slsa-workflow-secret14: {}
   slsa-workflow-secret15: {}
 
-outputs:
-  sbom:
-    description: "go.mod SBoM for a given package in the provided BOSH release"
-    value: "${{ steps.generate-go-sbom.outputs.sbom }}"
-
 runs:
   using: 'composite'
   steps:
     - name: Checkout
       uses: actions/checkout@v3
-      with:
-        repository: ${{ fromJson(inputs.slsa-workflow-inputs).repository }}
 
     - name: Run main Action
-      uses: ./../__TOOL_CHECKOUT_DIR__/gomod_sbom
+      uses: ./../__TOOL_CHECKOUT_DIR__/gomod_vendor
       id: verify-gomod-vendor
       with:
         go-mod: ${{ fromJson(inputs.slsa-workflow-inputs).go-mod }}
-        sbom-format: ${{ fromJson(inputs.slsa-workflow-inputs).sbom-format }}
 
     - name: Generate layout file
       id: generate-layout
