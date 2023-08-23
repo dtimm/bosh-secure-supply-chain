@@ -20,7 +20,7 @@ runs:
       set -e
       echo "${GO_MOD_FILE:?GO_MOD_FILE must be set}"
 
-      pushd "$(basename "${GO_MOD_FILE}")" > /dev/null
+      pushd "$(dirname "${GO_MOD_FILE}")" > /dev/null
         go mod tidy
         go mod vendor
 
