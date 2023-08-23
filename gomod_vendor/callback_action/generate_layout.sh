@@ -20,14 +20,14 @@ cat <<EOF >DATA
     "attestations":
     [
         {
-            "name": "${GO_MOD_FILE}",
+            "name": "go.mod",
             "subjects":
             [
                 ${gomod_subject}
             ]
         },
         {
-            "name": "${go_sum_file}",
+            "name": "go.sum",
             "subjects":
             [
                 ${gosum_subject}
