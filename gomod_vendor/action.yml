@@ -25,7 +25,7 @@ runs:
         go mod vendor
 
         if [[ `git status --porcelain` ]]; then
-          echo "go.mod and/or go.sum do not match vendor/ directory"
+          echo "::error file=${GO_MOD_FILE},line=1::go.mod and/or go.sum do not match vendor/ directory"
           exit 1
         fi
       popd > /dev/null
