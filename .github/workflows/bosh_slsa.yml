@@ -1,48 +1,33 @@
 name: BOSH SLSA
 
 on:
-  workflow_dispatch:
-    inputs:
-      repository:
-        description: "The repository to generate SBoMs for"
-        required: true
-        type: string
-      package-name:
-        description: "The name of the package to generate a SBoM for"
-        required: true
-        type: string
+  workflow_call:
 
 jobs:
-  find-go-mods:
+  find-supported-files:
     runs-on: ubuntu-latest
     outputs:
-      go-mods: ${{ steps.find-go-mods.outputs.go-mods }}
+      gomods: ${{ steps.find-supported-files.outputs.gomods }}
+      gemfiles: ${{ steps.find-supported-files.outputs.gemfiles }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          repository: ${{ inputs.repository }}
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
           path: bosh_link
-      - name: Find go.mod files
-        id: find-go-mods
-        env:
-          PACKAGE_NAME: ${{ inputs.package-name }}
-        run: bosh_link/scripts/find_gomod.sh
+      - name: Find supported files files
+        id: find-supported-files
+        run: bosh_link/scripts/find_supported_files.sh
 
-  generate-slsa-sbom:
-    needs: find-go-mods
+  generate-gomod-attestation:
+    needs: find-supported-files
     strategy:
       matrix:
-        go-mod: ${{ fromJSON(needs.find-go-mods.outputs.go-mods) }}
+        go-mod: ${{ fromJSON(needs.find-supported-files.outputs.gomods) }}
     permissions:
       id-token: write # For signing
       contents: write # For asset release.
       packages: write # For package upload.
       actions: read # For getting workflow run info.
-    uses: dtimm/bosh-secure-supply-chain/.github/workflows/slsa3.yml@main
+    uses: dtimm/bosh-secure-supply-chain/.github/workflows/go_vendor.yml@main
     with:
-      repository: ${{ inputs.repository }}
       go-mod: ${{ matrix.go-mod }}

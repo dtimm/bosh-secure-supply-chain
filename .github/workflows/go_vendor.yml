@@ -1,4 +1,4 @@
-name: BOSH SLSA 3 builder
+name: BOSH SLSA 3 go.mod vendor builder
 
 permissions: {}
 
