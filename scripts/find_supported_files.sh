@@ -11,8 +11,7 @@ for package in $(ls packages); do
     echo "spec file not found for ${package}."
   else
     for glob in $(yq -r '.files[]' <${spec_file}); do
-      for f in $(ls src/${glob}); do
-        echo "Checking ${f}"
+      for f in $(find . -type f -path "./src/${glob}"); do
         case `basename ${f}` in
         go.mod)
           echo "go.mod found: ${f}"
