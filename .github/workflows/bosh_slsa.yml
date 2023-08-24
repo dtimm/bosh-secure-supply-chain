@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           repository: dtimm/bosh-secure-supply-chain
           path: bosh_link
