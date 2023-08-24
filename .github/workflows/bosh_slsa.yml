@@ -13,7 +13,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
+          repository: dtimm/bosh-secure-supply-chain
           path: bosh_link
+          ref: main
       - name: Find supported files files
         id: find-supported-files
         run: bosh_link/scripts/find_supported_files.sh
