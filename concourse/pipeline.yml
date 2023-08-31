@@ -6,7 +6,7 @@ resources:
     uri: git@github.com:cloudfoundry/bpm-release.git
     branch: master
     private_key: ((signing_test.private_key))
-- name: bosh-sbom-link
+- name: bosh-secure-supply-chain
   type: git
   source:
     uri: git@github.com:dtimm/bosh-secure-supply-chain.git
@@ -19,15 +19,12 @@ jobs:
   plan:
   - in_parallel:
     - get: bpm-release
-    - get: bosh-sbom-link
+    - get: bosh-secure-supply-chain
   - task: generate-gomod-sbom
-    file: bosh-sbom-link/concourse/gomod/task.yml
+    file: bosh-secure-supply-chain/concourse/gomod/task.yml
     input_mapping:
       bosh-release: bpm-release
     params:
-      PACKAGE_NAME: bpm
-  - task: sign-sboms
-    file: bosh-sbom-link/concourse/sign/task.yml
-    params:
-      SIGNING_KEY: ((signing_test.signing_key))
+      COSIGN_KEY: ((signing_test.cosign_key))
+      COSIGN_PASSWORD: ((signing_test.cosign_key_password))
 

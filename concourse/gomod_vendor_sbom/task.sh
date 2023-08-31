@@ -50,5 +50,5 @@ for gomod in $(uniq_files "${gomods[@]}"); do
 
   echo "Generating attested SBoM for ${gomod}..."
   output_file=${gomod//\//-}
-  cosign attest-blob --type "cyclonedx" --predicate <(echo ${jsonString}) --key "signing-key/${SIGNING_KEY}" --yes --tlog-upload=false bosh-release/${gomod} --output-signature "./attestations/${output_file#.-src-}.cdx.intoto.json"
+  cosign attest-blob --type "cyclonedx" --predicate <(echo ${jsonString}) --key <(echo -e ${COSIGN_KEY}) --yes --tlog-upload=false bosh-release/${gomod} --output-signature "./attestations/${output_file#.-src-}.cdx.intoto.json"
 done

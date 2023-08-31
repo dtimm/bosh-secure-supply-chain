@@ -3,7 +3,6 @@ platform: linux
 inputs:
 - name: bosh-secure-supply-chain
 - name: bosh-release
-- name: signing-key
 outputs:
 - name: attestations
 image_resource:
@@ -12,7 +11,7 @@ image_resource:
     repository: harbor-repo.vmware.com/tas_ppe/cosign
     tag: 0.0.5-beta
 params:
-  SIGNING_KEY: cosign.key
+  COSIGN_KEY:
   COSIGN_PASSWORD:
 run:
   path: bosh-secure-supply-chain/concourse/gomod_vendor_sbom/task.sh
