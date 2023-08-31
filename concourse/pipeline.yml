@@ -2,12 +2,14 @@
 resources:
 - name: bpm-release
   type: git
+  icon: github
   source:
-    uri: git@github.com:cloudfoundry/bpm-release.git
+    uri: git@github.com:dtimm/bpm-release.git
     branch: master
     private_key: ((signing_test.private_key))
 - name: bosh-secure-supply-chain
   type: git
+  icon: github
   source:
     uri: git@github.com:dtimm/bosh-secure-supply-chain.git
     branch: main
@@ -21,10 +23,31 @@ jobs:
     - get: bpm-release
     - get: bosh-secure-supply-chain
   - task: generate-gomod-sbom
-    file: bosh-secure-supply-chain/concourse/gomod/task.yml
+    file: bosh-secure-supply-chain/concourse/gomod_vendor_sbom/task.yml
     input_mapping:
       bosh-release: bpm-release
     params:
       COSIGN_KEY: ((signing_test.cosign_key))
       COSIGN_PASSWORD: ((signing_test.cosign_key_password))
-
+  - task: copy-attestations-to-repo
+    config:
+      image_resource:
+        type: registry-image
+        source:
+          repository: harbor-repo.vmware.com/tas_ppe/cosign
+          tag: 0.0.5-beta
+      platform: linux
+      inputs:
+      - name: bpm-release
+      - name: attestations
+      outputs:
+      - name: bpm-release
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          set -eux
+          cp attestations/* bpm-release/src
+  - put: bpm-release
+    params: { repository: bpm-release }
