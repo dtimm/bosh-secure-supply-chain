@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -eu
 
+echo "${COSIGN_KEY:?COSIGN_KEY must be set}"
+echo "${COSIGN_PASSWORD:?COSIGN_PASSWORD must be set}"
+
 gomods=()
 pushd bosh-release
 for package in $(ls packages); do
@@ -41,6 +44,8 @@ for gomod in $(uniq_files "${gomods[@]}"); do
       echo "go.mod and/or go.sum do not match vendor/ directory"
       exit 1
     fi
+
+    gomod_deps=$(go mod download -json | jq '{uri: (.Path + "@" + .Version), digest: {gosum: .Sum}}' | jq -s .)
   popd
 
   echo "Generating SBoM for ${gomod}..."
@@ -49,6 +54,35 @@ for gomod in $(uniq_files "${gomods[@]}"); do
   jsonString=$(echo "${package_sbom}" | jq --join-output --compact-output .)
 
   echo "Generating attested SBoM for ${gomod}..."
-  output_file=${gomod//\//-}
-  cosign attest-blob --type "cyclonedx" --predicate <(echo ${jsonString}) --key <(echo -e ${COSIGN_KEY}) --yes --tlog-upload=false bosh-release/${gomod} --output-signature "./attestations/${output_file#.-src-}.cdx.intoto.json"
+  removed_slashes=${gomod//\//-}
+  output_sbom="./attestations/${removed_slashes#.-src-}.cdx.intoto.json"
+  cosign attest-blob --type "cyclonedx" --predicate <(echo ${jsonString}) --key <(echo -e ${COSIGN_KEY}) --yes --tlog-upload=false bosh-release/${gomod} --output-signature "${output_sbom}"
+
+  echo "Generating attested provenance for ${output_sbom}..."
+  cat >predicate.json <<EOL
+{
+  "buildDefinition": {
+    "buildType": "https://github.com/dtimm/bosh-secure-supply-chain/concourse/gomod_vendor_sbom@main",
+    "externalParameters": {
+      "inputs": {},
+      "vars": {}
+    },
+    "internalParameters": {
+      "concourse_stuff": {}
+    },
+    "resolvedDependencies": ${gomod_deps}
+  },
+  "runDetails": {
+    "builder": {
+      "id": "https://github.com/dtimm/bosh-secure-supply-chain/concourse/gomod_vendor_sbom/task.yml@refs/heads/main"
+    },
+    "metadata": {
+      "invocationId": "link to concourse run???"
+    }
+  }
+}
+EOL
+
+  output_provenance="./attestations/${removed_slashes#.-src-}.intoto.json"
+  cosign attest-blob --type "https://slsa.dev/provenance/v1" --predicate predicate.json --key <(echo -e ${COSIGN_KEY}) --yes --tlog-upload=false ${output_sbom} --output-signature "${output_provenance}"
 done
