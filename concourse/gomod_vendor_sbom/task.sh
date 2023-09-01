@@ -59,11 +59,11 @@ for gomod in $(uniq_files "${gomods[@]}"); do
   cosign attest-blob --type "cyclonedx" --predicate <(echo ${jsonString}) --key <(echo -e ${COSIGN_KEY}) --yes --tlog-upload=false bosh-release/${gomod} --output-signature "${output_sbom}"
 
   echo "Generating attested provenance for ${output_sbom}..."
-  build_metadata=()
   for f in $(ls build-metadata); do
-    build_metadata+=$(echo "\"${f}\": \"$(cat build-metadata/${f})\"")
+    echo "{\"${f}\": \"$(cat build-metadata/${f})\"}"
   done > build_metadata.json
-  build_metadata_json=$(jq -s . <build_metadata.json)
+  build_metadata_json=$(jq -s add <build_metadata.json)
+
   cat >predicate.json <<EOL
 {
   "buildDefinition": {
