@@ -1,4 +1,11 @@
 ---
+resource_types:
+- name: build-metadata-resource
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pcfopsmanager/build-metadata-resource
+    tag: latest
+
 resources:
 - name: bpm-release
   type: git
@@ -6,7 +13,7 @@ resources:
   source:
     uri: git@github.com:dtimm/bpm-release.git
     branch: master
-    private_key: ((signing_test.private_key))
+    private_key: ((signing_test.dtimm_bpm_private_key))
 - name: bosh-secure-supply-chain
   type: git
   icon: github
@@ -14,6 +21,8 @@ resources:
     uri: git@github.com:dtimm/bosh-secure-supply-chain.git
     branch: main
     private_key: ((signing_test.private_key))
+- name: build-metadata
+  type: build-metadata-resource
 
 jobs:
 - name: generate-sbom-provenance
@@ -22,6 +31,7 @@ jobs:
   - in_parallel:
     - get: bpm-release
     - get: bosh-secure-supply-chain
+    - get: build-metadata
   - task: generate-gomod-sbom
     file: bosh-secure-supply-chain/concourse/gomod_vendor_sbom/task.yml
     input_mapping:
@@ -49,5 +59,11 @@ jobs:
         - |
           set -eux
           cp attestations/* bpm-release/src
+          pushd bpm-release
+            git config --global user.email "dtimm@vmware.com"
+            git config --global user.name "David Timm"
+            git add src
+            git commit -m "Add attestations"
+          popd
   - put: bpm-release
     params: { repository: bpm-release }

@@ -3,6 +3,7 @@ platform: linux
 inputs:
 - name: bosh-secure-supply-chain
 - name: bosh-release
+- name: build-metadata
 outputs:
 - name: attestations
 image_resource:
