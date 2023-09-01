@@ -71,7 +71,7 @@ for gomod in $(uniq_files "${gomods[@]}"); do
   cosign attest-blob --type "cyclonedx" --predicate <(echo ${jsonString}) --key <(echo -e ${COSIGN_KEY}) --yes --tlog-upload=false bosh-release/${gomod} --output-signature "${output_sbom}"
 
   echo "Generating attested provenance for ${output_sbom}..."
-  resolved_dependencies=$(jq --argjson r $bosh_release_metadata --argjson s $bssc_metadata '. += [$r,$s]' <(echo $gomod_deps))
+  resolved_dependencies=$(jq --argjson r "${bosh_release_metadata}" --argjson s "${bssc_metadata}" '. += [$r,$s]' <(echo $gomod_deps))
   cat >predicate.json <<EOL
 {
   "buildDefinition": {
