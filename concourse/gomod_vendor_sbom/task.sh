@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -eu
 
-echo "${COSIGN_KEY:?COSIGN_KEY must be set}"
-echo "${COSIGN_PASSWORD:?COSIGN_PASSWORD must be set}"
+: "${COSIGN_KEY:?COSIGN_KEY must be set}"
+: "${COSIGN_PASSWORD:?COSIGN_PASSWORD must be set}"
 
 gomods=()
 pushd bosh-release
@@ -35,6 +35,18 @@ uniq_files () {
   echo ${uniq_files}
 }
 
+for f in $(ls build-metadata); do
+  echo "{\"${f}\": \"$(cat build-metadata/${f})\"}"
+done > build_metadata.json
+build_metadata_json=$(jq -s add <build_metadata.json)
+build_link="$(cat build-metadata/atc-external-url)/$(cat build-metadata/build-team-name)/pipelines/$(cat build-metadata/build-pipeline-name)/jobs/$(cat build-metadata/build-job-name)/builds/$(cat build-metadata/build-name)"
+pushd bosh-release
+  bosh_release_metadata="{\"uri\": \"$(git remote get-url origin)\",\"digest\":{\"gitCommit\": \"$(git rev-parse HEAD)\"}}"
+popd
+pushd bosh-secure-supply-chain
+  bssc_metadata="{\"uri\": \"$(git remote get-url origin)\",\"digest\":{\"gitCommit\": \"$(git rev-parse HEAD)\"}}"
+popd
+
 for gomod in $(uniq_files "${gomods[@]}"); do
   echo "Verifying packages properly vendored for ${gomod}..."
   pushd $(dirname bosh-release/${gomod})
@@ -59,30 +71,23 @@ for gomod in $(uniq_files "${gomods[@]}"); do
   cosign attest-blob --type "cyclonedx" --predicate <(echo ${jsonString}) --key <(echo -e ${COSIGN_KEY}) --yes --tlog-upload=false bosh-release/${gomod} --output-signature "${output_sbom}"
 
   echo "Generating attested provenance for ${output_sbom}..."
-  for f in $(ls build-metadata); do
-    echo "{\"${f}\": \"$(cat build-metadata/${f})\"}"
-  done > build_metadata.json
-  build_metadata_json=$(jq -s add <build_metadata.json)
-
+  resolved_dependencies=$(jq --argjson r $bosh_release_metadata --argjson s $bssc_metadata '. += [$r,$s]' <(echo $gomod_deps))
   cat >predicate.json <<EOL
 {
   "buildDefinition": {
-    "buildType": "https://github.com/dtimm/bosh-secure-supply-chain/concourse/gomod_vendor_sbom@main",
-    "externalParameters": {
-      "inputs": {},
-      "vars": {}
-    },
+    "buildType": "https://github.com/dtimm/bosh-secure-supply-chain/tree/main/concourse/gomod_vendor_sbom",
+    "externalParameters": {},
     "internalParameters": {
-      "concourse_stuff": ${build_metadata_json}
+      "concourseBuildMetadata": ${build_metadata_json}
     },
-    "resolvedDependencies": ${gomod_deps}
+    "resolvedDependencies": ${resolved_dependencies}
   },
   "runDetails": {
     "builder": {
-      "id": "https://github.com/dtimm/bosh-secure-supply-chain/concourse/gomod_vendor_sbom/task.yml@refs/heads/main"
+      "id": "https://github.com/dtimm/bosh-secure-supply-chain/tree/main/concourse/gomod_vendor_sbom"
     },
     "metadata": {
-      "invocationId": "link to concourse run???"
+      "invocationId": "${build_link}"
     }
   }
 }

@@ -6,3 +6,9 @@ Each Concourse task in the repository is designed as a "link" in the supply chai
 
 ## Usage
 Reference the [concourse-pipeline](./concourse/pipeline.yml) for an example of how to use these tasks in a pipeline.
+
+## Links
+### go.mod vendor SBoM
+This link provides at least two in-toto attestations for a BOSH release:
+1. Software bill of materials (SBoM) for each go.mod file used by packages in the BOSH release. This SBoM is generated using `syft` and used the CycloneDX format.
+1. Provenance for each SBoM, attesting that the packages in the SBoM are properly vendored into the repository.
