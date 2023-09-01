@@ -61,7 +61,7 @@ for gomod in $(uniq_files "${gomods[@]}"); do
   echo "Generating attested provenance for ${output_sbom}..."
   build_metadata=()
   for f in $(ls build-metadata); do
-    build_metadata+=(echo "${f}: $(cat build-metadata/${f})")
+    build_metadata+=($(echo "${f}: $(cat build-metadata/${f})"))
   done
   cat >predicate.json <<EOL
 {
@@ -72,7 +72,7 @@ for gomod in $(uniq_files "${gomods[@]}"); do
       "vars": {}
     },
     "internalParameters": {
-      "concourse_stuff": ${build_metadata}
+      "concourse_stuff": "${build_metadata}"
     },
     "resolvedDependencies": ${gomod_deps}
   },

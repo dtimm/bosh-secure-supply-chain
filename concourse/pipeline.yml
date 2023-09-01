@@ -31,7 +31,7 @@ jobs:
   - in_parallel:
     - get: bpm-release
     - get: bosh-secure-supply-chain
-    - get: build-metadata
+    - put: build-metadata
   - task: generate-gomod-sbom
     file: bosh-secure-supply-chain/concourse/gomod_vendor_sbom/task.yml
     input_mapping:
