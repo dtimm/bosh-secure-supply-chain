@@ -35,11 +35,13 @@ uniq_files () {
   echo ${uniq_files}
 }
 
+
+echo "Compiling build metadata..."
 for f in $(ls build-metadata); do
   echo "{\"${f}\": \"$(cat build-metadata/${f})\"}"
 done > build_metadata.json
 build_metadata_json=$(jq -s add <build_metadata.json)
-build_link="$(cat build-metadata/atc-external-url)/$(cat build-metadata/build-team-name)/pipelines/$(cat build-metadata/build-pipeline-name)/jobs/$(cat build-metadata/build-job-name)/builds/$(cat build-metadata/build-name)"
+build_link="$(cat build-metadata/atc-external-url)/teams/$(cat build-metadata/build-team-name)/pipelines/$(cat build-metadata/build-pipeline-name)/jobs/$(cat build-metadata/build-job-name)/builds/$(cat build-metadata/build-name)"
 pushd bosh-release
   bosh_release_metadata="{\"uri\": \"$(git remote get-url origin)\",\"digest\":{\"gitCommit\": \"$(git rev-parse HEAD)\"}}"
 popd
