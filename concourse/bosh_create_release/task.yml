@@ -1,0 +1,20 @@
+---
+platform: linux
+inputs:
+- name: bosh-secure-supply-chain
+- name: bosh-release
+- name: build-metadata
+outputs:
+- name: build
+- name: attestations
+image_resource:
+  type: registry-image
+  source:
+    repository: harbor-repo.vmware.com/tas_ppe/cosign
+    tag: 0.0.5-beta
+params:
+  COSIGN_KEY:
+  COSIGN_PASSWORD:
+  BOSH_RELEASE_FILE:
+run:
+  path: bosh-secure-supply-chain/concourse/bosh_create_release/task.sh

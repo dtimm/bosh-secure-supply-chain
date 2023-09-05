@@ -67,3 +67,19 @@ jobs:
           popd
   - put: bpm-release
     params: { repository: bpm-release }
+- name: build-bosh-release
+  serial: true
+  plan:
+  - in_parallel:
+    - get: bpm-release
+      passed: [generate-sbom-provenance]
+    - get: bosh-secure-supply-chain
+    - put: build-metadata
+  - task: build-bpm-release-1.2.5
+    file: bosh-secure-supply-chain/concourse/bosh_create_release/task.yml
+    input_mapping:
+      bosh-release: bpm-release
+    params:
+      COSIGN_KEY: ((signing_test.cosign_key))
+      COSIGN_PASSWORD: ((signing_test.cosign_key_password))
+      BOSH_RELEASE_FILE: releases/bpm/bpm-1.2.5.yml
