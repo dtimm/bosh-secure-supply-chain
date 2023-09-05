@@ -45,5 +45,13 @@ cat >predicate.json <<EOL
 }
 EOL
 
-cosign attest-blob --type "https://slsa.dev/provenance/v1" --predicate predicate.json --key <(echo -e ${COSIGN_KEY}) --yes --tlog-upload=false "build/bosh-release.tgz" 
+removed_slashes=${BOSH_RELEASE_FILE//\//-}
+output_provenance="./attestations/${removed_slashes/\.yml/}.intoto.json"
+cosign attest-blob \
+  --type "https://slsa.dev/provenance/v1" \
+  --predicate predicate.json \
+  --key <(echo -e ${COSIGN_KEY}) \
+  --yes --tlog-upload=false \
+  --output-signature "${output_provenance}" \
+  "build/bosh-release.tgz"
 

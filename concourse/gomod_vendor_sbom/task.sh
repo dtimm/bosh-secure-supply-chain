@@ -96,5 +96,11 @@ for gomod in $(uniq_files "${gomods[@]}"); do
 EOL
 
   output_provenance="./attestations/${removed_slashes#.-src-}.intoto.json"
-  cosign attest-blob --type "https://slsa.dev/provenance/v1" --predicate predicate.json --key <(echo -e ${COSIGN_KEY}) --yes --tlog-upload=false ${output_sbom} --output-signature "${output_provenance}"
+  cosign attest-blob \
+    --type "https://slsa.dev/provenance/v1" \
+    --predicate predicate.json \
+    --key <(echo -e ${COSIGN_KEY}) \
+    --yes --tlog-upload=false \
+    --output-signature "${output_provenance}" \
+    ${output_sbom}
 done
