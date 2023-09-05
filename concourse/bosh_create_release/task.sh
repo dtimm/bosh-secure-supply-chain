@@ -28,7 +28,9 @@ cat >predicate.json <<EOL
 {
   "buildDefinition": {
     "buildType": "https://github.com/dtimm/bosh-secure-supply-chain/tree/main/concourse/bosh_create_release",
-    "externalParameters": {},
+    "externalParameters": {
+      "boshReleaseFile": "${BOSH_RELEASE_FILE}"
+    },
     "internalParameters": {
       "concourseBuildMetadata": ${build_metadata_json}
     },
