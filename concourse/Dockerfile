@@ -13,4 +13,7 @@ RUN curl --fail -sSL https://go.dev/dl/go1.20.1.linux-amd64.tar.gz | tar -xz -C 
 ENV GOROOT=/usr/local/go/
 ENV PATH="$GOROOT/bin:/root/go/bin:$PATH"
 
+RUN curl --fail -sSL https://releases.jfrog.io/artifactory/jfrog-cli/v2-jf/2.48.0/jfrog-cli-linux-amd64/jf --output /usr/local/bin/jf && \
+    chmod +x /usr/local/bin/jf
+
 WORKDIR /workspace
