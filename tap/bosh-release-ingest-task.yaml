@@ -25,7 +25,7 @@ spec:
       git clone $(params.bosh-release-uri) bosh-release
       cd bosh-release
         filename="$(bosh int $(params.release-file) --path /name)-$(bosh int $(params.release-file) --path /version).tgz"
-        bosh create-release $(params.release-file) --tarball bosh-release.tgz
+        bosh create-release $(params.release-file) --tarball ${filename}
       cd ..
 
-      jf rt upload bosh-release/bosh-release.tgz tanzu-application-services-generic-local/development/${filename}
+      jf rt upload bosh-release/${filename} tanzu-application-services-generic-local/development/${filename}
