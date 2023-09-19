@@ -11,12 +11,21 @@ spec:
   steps:
   - name: create-release-tarball
     image: harbor-repo.vmware.com/tas_ppe/cosign:0.0.6-beta
+    env:
+    - name: ARTIFACTORY_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: artifactory-token
+          key: encoded-token
     script: |
       #!/bin/sh
+
+      jf config import "$(echo $ARTIFACTORY_TOKEN | base64)"
+
       git clone $(params.bosh-release-uri) bosh-release
       cd bosh-release
         filename="$(bosh int $(params.release-file) --path /name)-$(bosh int $(params.release-file) --path /version).tgz"
         bosh create-release $(params.release-file) --tarball bosh-release.tgz
       cd ..
 
-      jf rt upload --url https://artifactory.eng.vmware.com/ --access-token "" bosh-release/bosh-release.tgz tanzu-application-services-generic-local/development/${filename}
+      jf rt upload bosh-release/bosh-release.tgz tanzu-application-services-generic-local/development/${filename}

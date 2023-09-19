@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: artifactory-token
+type: Opaque
+data:
+  encoded-token: <encoded token from `jf config export`>
