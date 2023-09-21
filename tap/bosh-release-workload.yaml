@@ -1,0 +1,16 @@
+---
+apiVersion: carto.run/v1alpha1
+kind: Workload
+metadata:
+  name: bpm-release
+  labels:
+    apps.tanzu.vmware.com/workload-type: bosh-release-ingest
+spec:
+  params:
+  - name: release-file
+    value: releases/bpm/bpm-1.2.3.yml
+  source:
+    git:
+      url: https://github.com/dtimm/bpm-release/
+      ref:
+        branch: master

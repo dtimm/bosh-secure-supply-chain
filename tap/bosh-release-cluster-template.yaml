@@ -1,0 +1,21 @@
+apiVersion: carto.run/v1alpha1
+kind: ClusterTemplate
+metadata:
+  name: bosh-release-ingest
+spec:
+  template:
+    apiVersion: tekton.dev/v1beta1
+    kind: TaskRun
+    metadata:
+      name: $(workload.metadata.name)$-ingest-run
+    spec:
+      taskRef:
+        name: bosh-release-ingest
+      params:
+      - name: release-file
+        value: $(params.release-file)$
+      - name: bosh-release-uri
+        value: $(workload.spec.source.git.url)$
+  params:
+  - name: release-file
+    default: releases/**/*.yml
