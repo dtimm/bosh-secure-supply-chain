@@ -1,10 +1,13 @@
+---
 apiVersion: carto.run/v1alpha1
 kind: ClusterSupplyChain
 metadata:
-  name: bosh-release-to-artifactory
+  name: bosh-release-ingest
 spec:
-  selector:
-    apps.tanzu.vmware.com/workload-type: bosh-release-ingest
+  selectorMatchFields:
+  - key: apps.tanzu.vmware.com/workload-type
+    operator: In
+    values: [ bosh-release-ingest ]
   resources:
   - name: bosh-release-ingest
     templateRef:

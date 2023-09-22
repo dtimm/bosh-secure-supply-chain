@@ -1,0 +1,6 @@
+---
+metadata:
+  name: supply-chain-test
+  description: yep yep yep
+compareOptions:
+  ignoreMetadata: true

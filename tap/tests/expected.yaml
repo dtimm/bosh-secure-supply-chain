@@ -1,0 +1,13 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: some-release-ingest-run
+spec:
+  taskRef:
+    name: bosh-release-ingest
+  params:
+  - name: release-file
+    value: releases/yep/uh-huh-1.2.3.yml
+  - name: bosh-release-uri
+    value: https://git.example.org/some/bosh-release.git
